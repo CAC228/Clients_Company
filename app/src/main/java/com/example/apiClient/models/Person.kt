@@ -8,6 +8,6 @@ data class Person(
     var type: String,
     var shifer: String,
     var data: String,
-    val phones: List<PhonePerson>,
-    val emails: List<EmailPerson>
+    val phones: List<PhonePerson> = emptyList(),
+    val emails: List<EmailPerson> = emptyList()
 )

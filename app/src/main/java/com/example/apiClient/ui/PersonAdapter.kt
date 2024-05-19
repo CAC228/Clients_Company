@@ -7,7 +7,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.apiClient.databinding.ItemPersonBinding
 import com.example.apiClient.models.Person
 
-class PersonAdapter(private val onEditClick: (Person) -> Unit) : RecyclerView.Adapter<PersonAdapter.PersonViewHolder>() {
+class PersonAdapter(
+    private val onEditClick: (Person) -> Unit,
+    private val onLongClick: (Person) -> Unit
+) : RecyclerView.Adapter<PersonAdapter.PersonViewHolder>() {
 
     private var persons: List<Person> = listOf()
 
@@ -17,7 +20,13 @@ class PersonAdapter(private val onEditClick: (Person) -> Unit) : RecyclerView.Ad
     }
 
     override fun onBindViewHolder(holder: PersonViewHolder, position: Int) {
-        holder.bind(persons[position], onEditClick)
+        holder.bind(persons[position], onEditClick, onLongClick)
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun submitList(persons: List<Person>) {
+        this.persons = persons
+        notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int = persons.size
@@ -28,13 +37,21 @@ class PersonAdapter(private val onEditClick: (Person) -> Unit) : RecyclerView.Ad
         notifyDataSetChanged()
     }
 
+    fun getPersonAt(position: Int): Person = persons[position]
+
     class PersonViewHolder(private val binding: ItemPersonBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(person: Person, onEditClick: (Person) -> Unit) {
+        fun bind(person: Person, onEditClick: (Person) -> Unit, onLongClick: (Person) -> Unit) {
             binding.person = person
             binding.executePendingBindings()
             binding.root.setOnClickListener {
                 onEditClick(person)
             }
+            binding.root.setOnLongClickListener {
+                onLongClick(person)
+                true
+            }
         }
     }
+
+
 }

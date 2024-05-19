@@ -1,4 +1,4 @@
-<!-- res/layout/dialog_add_edit_person.xml -->
+<!-- dialog_add_person.xml -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -13,58 +13,53 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
 
         <EditText
-            android:id="@+id/et_veriety_id"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Veriety ID"
-            android:text="@={person.verietyID}" />
-
-        <EditText
-            android:id="@+id/et_status_id"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Status ID"
-            android:text="@={person.statusID}" />
-
-        <EditText
-            android:id="@+id/et_inn"
+            android:id="@+id/etInn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="INN"
             android:text="@={person.inn}" />
 
         <EditText
-            android:id="@+id/et_type"
+            android:id="@+id/etType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Type"
             android:text="@={person.type}" />
 
         <EditText
-            android:id="@+id/et_shifer"
+            android:id="@+id/etShifer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Shifer"
             android:text="@={person.shifer}" />
 
         <EditText
-            android:id="@+id/et_data"
+            android:id="@+id/etData"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Data"
             android:text="@={person.data}" />
 
+        <Spinner
+            android:id="@+id/spinnerVerietyId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Spinner
+            android:id="@+id/spinnerStatusId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
         <Button
-            android:id="@+id/btn_save"
+            android:id="@+id/btnSave"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Save"
-            android:onClick="@{() -> viewModel.onSaveClicked(person)}" />
+            android:text="Сохранить" />
 
     </LinearLayout>
 </layout>

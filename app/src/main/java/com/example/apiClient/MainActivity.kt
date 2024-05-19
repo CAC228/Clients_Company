@@ -1,7 +1,10 @@
 package com.example.apiClient
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -14,18 +17,17 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.example.apiClient.data.PersonRepository
 import com.example.apiClient.databinding.ActivityMainBinding
-import com.example.apiClient.databinding.DialogAddEditPersonBinding
+import com.example.apiClient.databinding.DialogAddPersonBinding
+import com.example.apiClient.databinding.DialogPersonInfoBinding
 import com.example.apiClient.models.Person
 import com.example.apiClient.network.ApiService
-import com.example.apiClient.ui.PersonViewModel
-import com.example.apiClient.ui.PersonViewModelFactory
-import com.example.apiClient.ui.PersonListFragment
+import com.example.apiClient.ui.*
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private val viewModel: PersonViewModel by viewModels {
         PersonViewModelFactory(PersonRepository(ApiService.apiService))
@@ -46,7 +48,7 @@ class MainActivity : AppCompatActivity() {
             ).apply { syncState() }
         )
 
-        setupDrawer()
+        binding.navView.setNavigationItemSelectedListener(this)
 
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
@@ -58,39 +60,102 @@ class MainActivity : AppCompatActivity() {
             showAddEditPersonDialog(null)
         }
 
+        viewModel.personDetails.observe(this, { person ->
+            person?.let { showContactsDialog(it) }
+        })
+
         viewModel.fetchAllPersons()
     }
 
-    private fun setupDrawer() {
-        binding.navView.setNavigationItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.nav_add -> {
-                    // Логика для добавления клиента
-                }
-
-                R.id.nav_view -> {
-                    supportFragmentManager.commit {
-                        replace(R.id.fragment_container, PersonListFragment())
-                        addToBackStack(null)
-                    }
+    override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
+        Log.d("MainActivity", "onNavigationItemSelected: ${menuItem.title}")
+        when (menuItem.itemId) {
+            R.id.nav_home -> {
+                Log.d("MainActivity", "Loading PersonListFragment")
+                supportFragmentManager.commit {
+                    replace(R.id.fragment_container, PersonListFragment())
+                    addToBackStack(null)
                 }
             }
-            binding.drawerLayout.closeDrawer(GravityCompat.START)
-            true
+            R.id.nav_contacts -> {
+                Log.d("MainActivity", "Loading ContactDetailsFragment")
+                supportFragmentManager.commit {
+                    replace(R.id.fragment_container, ContactDetailsFragment())
+                    addToBackStack(null)
+                }
+            }
+            R.id.nav_manage_veriety_status -> {
+                Log.d("MainActivity", "Loading ManageVerietyStatusFragment")
+                supportFragmentManager.commit {
+                    replace(R.id.fragment_container, ManageVerietyStatusFragment())
+                    addToBackStack(null)
+                }
+            }
         }
+        binding.drawerLayout.closeDrawer(GravityCompat.START)
+        return true
     }
 
-    private fun showAddEditPersonDialog(person: Person?) {
-        val dialogBinding: DialogAddEditPersonBinding = DataBindingUtil.inflate(
+    fun showPersonInfoDialog(person: Person) {
+        val dialogBinding: DialogPersonInfoBinding = DataBindingUtil.inflate(
             layoutInflater,
-            R.layout.dialog_add_edit_person,
+            R.layout.dialog_person_info,
             null,
             false
         )
 
         val dialog = AlertDialog.Builder(this)
             .setView(dialogBinding.root)
-            .setTitle(if (person == null) "Добавить человека" else "Редактировать человека")
+            .setTitle("Информация о пользователе")
+            .setNegativeButton("Закрыть", null)
+            .create()
+
+        dialogBinding.person = person
+        dialogBinding.viewModel = viewModel
+
+        dialogBinding.btnShowContacts.setOnClickListener {
+            viewModel.fetchPersonContacts(person.id)
+        }
+
+        dialog.show()
+    }
+
+    private fun showContactsDialog(person: Person) {
+        val contactsMessage = buildString {
+            append("Телефоны:\n")
+            val phones = person.phones ?: emptyList()
+            if (phones.isNotEmpty()) {
+                phones.forEach { append("${it.phone}\n") }
+            } else {
+                append("Нет данных\n")
+            }
+            append("\nEmails:\n")
+            val emails = person.emails ?: emptyList()
+            if (emails.isNotEmpty()) {
+                emails.forEach { append("${it.email}\n") }
+            } else {
+                append("Нет данных\n")
+            }
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Контакты")
+            .setMessage(contactsMessage)
+            .setPositiveButton("Закрыть", null)
+            .show()
+    }
+
+    fun showAddEditPersonDialog(person: Person?) {
+        val dialogBinding: DialogAddPersonBinding = DataBindingUtil.inflate(
+            layoutInflater,
+            R.layout.dialog_add_person,
+            null,
+            false
+        )
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .setTitle(if (person == null) "Добавить Человека" else "Редактировать Человека")
             .setNegativeButton("Отмена", null)
             .create()
 
@@ -109,36 +174,66 @@ class MainActivity : AppCompatActivity() {
         dialogBinding.person = newPerson
         dialogBinding.viewModel = viewModel
 
-        dialogBinding.btnSave.setOnClickListener {
-            newPerson.verietyID = dialogBinding.etVerietyId.text.toString().toInt()
-            newPerson.statusID = dialogBinding.etStatusId.text.toString().toInt()
-            newPerson.inn = dialogBinding.etInn.text.toString()
-            newPerson.type = dialogBinding.etType.text.toString()
-            newPerson.shifer = dialogBinding.etShifer.text.toString()
-            newPerson.data = dialogBinding.etData.text.toString()
+        lifecycleScope.launch {
+            viewModel.fetchAllVerietyPersons()
+            viewModel.fetchAllStatusPersons()
 
-            lifecycleScope.launch {
-                try {
-                    withContext(Dispatchers.IO) {
-                        if (person == null) {
-                            viewModel.addPerson(newPerson)
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(this@MainActivity, "Человек добавлен", Toast.LENGTH_SHORT).show()
-                            }
-                        } else {
-                            viewModel.updatePerson(newPerson.id, newPerson)
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(this@MainActivity, "Человек обновлен", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+            viewModel.verietyPersons.observe(this@MainActivity) { verieties ->
+                val verietyNames = verieties.map { it.veriety }
+                val verietyIdAdapter = ArrayAdapter(
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_item,
+                    verietyNames
+                )
+                verietyIdAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                dialogBinding.spinnerVerietyId.adapter = verietyIdAdapter
+
+                if (person != null) {
+                    val verietyIndex = verieties.indexOfFirst { it.id == person.verietyID }
+                    if (verietyIndex >= 0) {
+                        dialogBinding.spinnerVerietyId.setSelection(verietyIndex)
                     }
-                } catch (e: Exception) {
-                    // handle error
                 }
             }
-            dialog.dismiss()
-        }
 
-        dialog.show()
+            viewModel.statusPersons.observe(this@MainActivity) { statuses ->
+                val statusNames = statuses.map { it.status }
+                val statusIdAdapter = ArrayAdapter(
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_item,
+                    statusNames
+                )
+                statusIdAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                dialogBinding.spinnerStatusId.adapter = statusIdAdapter
+
+                if (person != null) {
+                    val statusIndex = statuses.indexOfFirst { it.id == person.statusID }
+                    if (statusIndex >= 0) {
+                        dialogBinding.spinnerStatusId.setSelection(statusIndex)
+                    }
+                }
+            }
+
+            dialogBinding.btnSave.setOnClickListener {
+                val selectedVeriety = dialogBinding.spinnerVerietyId.selectedItem as String
+                val selectedStatus = dialogBinding.spinnerStatusId.selectedItem as String
+
+                newPerson.verietyID = viewModel.verietyPersons.value?.first { it.veriety == selectedVeriety }?.id ?: 0
+                newPerson.statusID = viewModel.statusPersons.value?.first { it.status == selectedStatus }?.id ?: 0
+                newPerson.inn = dialogBinding.etInn.text.toString()
+                newPerson.type = dialogBinding.etType.text.toString()
+                newPerson.shifer = dialogBinding.etShifer.text.toString()
+                newPerson.data = dialogBinding.etData.text.toString()
+
+                if (person == null) {
+                    viewModel.addPerson(newPerson)
+                } else {
+                    viewModel.updatePerson(person.id, newPerson)
+                }
+                dialog.dismiss()
+            }
+
+            dialog.show()
+        }
     }
 }

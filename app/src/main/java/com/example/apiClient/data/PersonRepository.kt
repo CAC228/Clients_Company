@@ -15,6 +15,8 @@ class PersonRepository(private val apiService: ApiServiceInterface) {
 
     suspend fun deletePerson(id: Int) = apiService.deletePerson(id)
 
+    suspend fun getPersonContacts(id: Int): Person = apiService.getPersonContacts(id)
+
     suspend fun getAllStatusPersons(): List<StatusPerson> = apiService.getAllStatusPersons()
 
     suspend fun getStatusPersonById(id: Int): StatusPerson = apiService.getStatusPersonById(id)

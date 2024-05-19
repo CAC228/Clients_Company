@@ -2,4 +2,7 @@
     <string name="app_name">API Клиент</string>
     <string name="navigation_drawer_open">Открыть навигационное меню</string>
     <string name="navigation_drawer_close">Закрыть навигационное меню</string>
+    <string name="veriety_id">Veriety ID</string>
+    <string name="veriety" />
+    <string name="status" />
 </resources>

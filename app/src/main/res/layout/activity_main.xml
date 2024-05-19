@@ -26,18 +26,12 @@
                 android:background="?attr/colorPrimary"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
-
             <FrameLayout
                 android:id="@+id/fragment_container"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1" />
-
-            <Button
-                android:id="@+id/btn_add_person"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Добавить Клиента" />
+                android:layout_weight="1"
+                android:layout_below="@id/toolbar" />
         </LinearLayout>
 
         <com.google.android.material.navigation.NavigationView
@@ -47,5 +41,23 @@
             android:layout_gravity="start"
             app:menu="@menu/drawer_menu"
             app:headerLayout="@layout/nav_header" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/btn_add_person"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="16dp"
+                android:src="@drawable/ic_add"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     </androidx.drawerlayout.widget.DrawerLayout>
+
 </layout>

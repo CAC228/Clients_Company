@@ -16,6 +16,9 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
     private val _persons = MutableLiveData<List<Person>>()
     val persons: LiveData<List<Person>> get() = _persons
 
+    private val _personDetails = MutableLiveData<Person>()
+    val personDetails: LiveData<Person> get() = _personDetails
+
     private val _statusPersons = MutableLiveData<List<StatusPerson>>()
     val statusPersons: LiveData<List<StatusPerson>> get() = _statusPersons
 
@@ -55,12 +58,11 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
     fun addPerson(person: Person) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val newPerson = repository.addPerson(person)
+                repository.addPerson(person)
                 withContext(Dispatchers.Main) {
-                    val updatedList = _persons.value?.toMutableList() ?: mutableListOf()
-                    updatedList.add(newPerson)
-                    _persons.value = updatedList
-                    Log.d("PersonViewModel", "Added person: $newPerson")
+                    val currentList = _persons.value ?: emptyList()
+                    _persons.value = currentList + person
+                    Log.d("PersonViewModel", "Added person: $person")
                 }
             } catch (e: Exception) {
                 Log.e("PersonViewModel", "Error adding person", e)
@@ -73,6 +75,7 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val updatedPerson = repository.updatePerson(id, person)
+                fetchAllPersons()
                 // Handle the updated person
             } catch (e: Exception) {
                 // handle error
@@ -85,6 +88,7 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 repository.deletePerson(id)
+                fetchAllPersons()
                 // Handle the deletion
             } catch (e: Exception) {
                 // handle error
@@ -226,6 +230,20 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
                 }
             } catch (e: Exception) {
                 // handle error
+            }
+        }
+    }
+
+    // Fetch contacts of a specific person by ID
+    fun fetchPersonContacts(id: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val person = repository.getPersonContacts(id)
+                withContext(Dispatchers.Main) {
+                    _personDetails.value = person
+                }
+            } catch (e: Exception) {
+                Log.e("PersonViewModel", "Error fetching person contacts", e)
             }
         }
     }
