@@ -1,7 +1,6 @@
 package com.example.apiClient.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,7 +24,6 @@ class ManageVerietyStatusFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d("ManageVerietyStatusFragment", "onCreateView called")
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_manage_veriety_status, container, false)
         binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
@@ -43,8 +41,8 @@ class ManageVerietyStatusFragment : Fragment() {
         binding.recyclerViewVeriety.layoutManager = LinearLayoutManager(context)
         binding.recyclerViewVeriety.adapter = verietyAdapter
 
-        viewModel.verietyPersons.observe(viewLifecycleOwner) {
-            val verietiesWithAdd = it.toMutableList().apply { add(VerietyPerson(0, "Добавить новый")) }
+        viewModel.verietyPersons.observe(viewLifecycleOwner) { verieties ->
+            val verietiesWithAdd = verieties.toMutableList().apply { add(VerietyPerson(0, "Добавить новый")) }
             verietyAdapter.submitList(verietiesWithAdd)
         }
 
@@ -52,8 +50,8 @@ class ManageVerietyStatusFragment : Fragment() {
         binding.recyclerViewStatus.layoutManager = LinearLayoutManager(context)
         binding.recyclerViewStatus.adapter = statusAdapter
 
-        viewModel.statusPersons.observe(viewLifecycleOwner) {
-            val statusesWithAdd = it.toMutableList().apply { add(StatusPerson(0, "Добавить новый")) }
+        viewModel.statusPersons.observe(viewLifecycleOwner) { statuses ->
+            val statusesWithAdd = statuses.toMutableList().apply { add(StatusPerson(0, "Добавить новый")) }
             statusAdapter.submitList(statusesWithAdd)
         }
     }

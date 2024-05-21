@@ -7,6 +7,11 @@ class PersonRepository(private val apiService: ApiServiceInterface) {
 
     suspend fun getAllPersons(): List<Person> = apiService.getAllPersons()
 
+    suspend fun getFilteredPersons(verietyId: Int?, statusId: Int?): List<Person> {
+        return apiService.getFilteredPersons(verietyId, statusId)
+    }
+
+
     suspend fun getPersonById(id: Int): Person = apiService.getPersonById(id)
 
     suspend fun addPerson(person: Person): Person = apiService.addPerson(person)

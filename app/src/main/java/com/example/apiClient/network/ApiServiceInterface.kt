@@ -9,6 +9,18 @@ interface ApiServiceInterface {
     @GET("/api/v1/persons")
     suspend fun getAllPersons(): List<Person>
 
+    @GET("/api/v1/persons/filtered")
+    suspend fun getFilteredPersons(
+        @Query("veriety_id") verietyId: Int?,
+        @Query("status_id") statusId: Int?
+    ): List<Person>
+
+    @POST("persons/{id}/phones")
+    suspend fun addPhone(@Path("id") personId: Int, @Body phonePerson: PhonePerson)
+
+    @POST("persons/{id}/emails")
+    suspend fun addEmail(@Path("id") personId: Int, @Body emailPerson: EmailPerson)
+
     @GET("/api/v1/persons/{id}")
     suspend fun getPersonById(@Path("id") id: Int): Person
 

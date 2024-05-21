@@ -2,17 +2,14 @@ package com.example.apiClient
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.example.apiClient.data.PersonRepository
@@ -23,16 +20,15 @@ import com.example.apiClient.models.Person
 import com.example.apiClient.network.ApiService
 import com.example.apiClient.ui.*
 import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : AppCompatActivity(){
 
     private val viewModel: PersonViewModel by viewModels {
         PersonViewModelFactory(PersonRepository(ApiService.apiService))
     }
     private lateinit var binding: ActivityMainBinding
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,23 +37,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         binding.lifecycleOwner = this
 
         setSupportActionBar(binding.toolbar)
-        binding.drawerLayout.addDrawerListener(
-            ActionBarDrawerToggle(
-                this, binding.drawerLayout, binding.toolbar,
-                R.string.navigation_drawer_open, R.string.navigation_drawer_close
-            ).apply { syncState() }
-        )
-
-        binding.navView.setNavigationItemSelectedListener(this)
+        supportFragmentManager.addOnBackStackChangedListener {
+            val canGoBack = supportFragmentManager.backStackEntryCount > 0
+            supportActionBar?.setDisplayHomeAsUpEnabled(canGoBack)
+        }
 
         if (savedInstanceState == null) {
             supportFragmentManager.commit {
                 replace(R.id.fragment_container, PersonListFragment())
             }
-        }
-
-        binding.btnAddPerson.setOnClickListener {
-            showAddEditPersonDialog(null)
         }
 
         viewModel.personDetails.observe(this, { person ->
@@ -67,33 +55,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         viewModel.fetchAllPersons()
     }
 
-    override fun onNavigationItemSelected(menuItem: MenuItem): Boolean {
-        Log.d("MainActivity", "onNavigationItemSelected: ${menuItem.title}")
-        when (menuItem.itemId) {
-            R.id.nav_home -> {
-                Log.d("MainActivity", "Loading PersonListFragment")
-                supportFragmentManager.commit {
-                    replace(R.id.fragment_container, PersonListFragment())
-                    addToBackStack(null)
-                }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
             }
-            R.id.nav_contacts -> {
-                Log.d("MainActivity", "Loading ContactDetailsFragment")
-                supportFragmentManager.commit {
-                    replace(R.id.fragment_container, ContactDetailsFragment())
-                    addToBackStack(null)
-                }
-            }
-            R.id.nav_manage_veriety_status -> {
-                Log.d("MainActivity", "Loading ManageVerietyStatusFragment")
-                supportFragmentManager.commit {
-                    replace(R.id.fragment_container, ManageVerietyStatusFragment())
-                    addToBackStack(null)
-                }
-            }
+            else -> super.onOptionsItemSelected(item)
         }
-        binding.drawerLayout.closeDrawer(GravityCompat.START)
-        return true
+    }
+
+    fun showPersonDetailsFragment(person: Person) {
+        viewModel.setCurrentPerson(person)
+        supportFragmentManager.commit {
+            replace(R.id.fragment_container, PersonDetailsFragment())
+            addToBackStack(null)
+        }
     }
 
     fun showPersonInfoDialog(person: Person) {

@@ -28,6 +28,19 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
     private val _personWithContacts = MutableLiveData<List<Person>>()
     val personWithContacts: LiveData<List<Person>> get() = _personWithContacts
 
+    private val _currentPerson = MutableLiveData<Person?>()
+    val currentPerson: LiveData<Person?> get() = _currentPerson
+
+    private val _filteredPersons = MutableLiveData<List<Person>>()
+    val filteredPersons: LiveData<List<Person>> get() = _filteredPersons
+
+    private val _isFiltering = MutableLiveData<Boolean>(false)
+    val isFiltering: LiveData<Boolean> get() = _isFiltering
+
+    fun setCurrentPerson(person: Person?) {
+        _currentPerson.value = person
+    }
+
     // Fetch all persons
     fun fetchAllPersons() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -40,6 +53,28 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
                 Log.e("PersonViewModel", "Error fetching persons", e)
             }
         }
+    }
+
+    // Fetch filtered persons
+    fun filterPersons(verietyId: Int, statusId: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val filteredList = repository.getFilteredPersons(verietyId, statusId)
+                withContext(Dispatchers.Main) {
+                    _filteredPersons.value = filteredList
+                    _isFiltering.value = true
+                }
+            } catch (e: Exception) {
+                // handle error
+            }
+        }
+    }
+
+    // Reset filtering
+    fun resetFiltering() {
+        _filteredPersons.value = emptyList()
+        _isFiltering.value = false
+        fetchAllPersons()
     }
 
     // Fetch person by ID
