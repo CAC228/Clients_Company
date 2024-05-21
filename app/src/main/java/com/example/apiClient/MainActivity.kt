@@ -65,12 +65,18 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
+    // Метод для отображения деталей Person
     fun showPersonDetailsFragment(person: Person) {
-        viewModel.setCurrentPerson(person)
-        supportFragmentManager.commit {
-            replace(R.id.fragment_container, PersonDetailsFragment())
-            addToBackStack(null)
+        val fragment = PersonDetailsFragment().apply {
+            arguments = Bundle().apply {
+                putSerializable("person", person)
+            }
         }
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     fun showPersonInfoDialog(person: Person) {
@@ -205,12 +211,14 @@ class MainActivity : AppCompatActivity(){
                 if (person == null) {
                     viewModel.addPerson(newPerson)
                 } else {
-                    viewModel.updatePerson(person.id, newPerson)
+                    viewModel.updatePerson(person)
                 }
                 dialog.dismiss()
+                viewModel.fetchAllPersons()
             }
 
             dialog.show()
         }
+
     }
 }

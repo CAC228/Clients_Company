@@ -15,20 +15,20 @@ interface ApiServiceInterface {
         @Query("status_id") statusId: Int?
     ): List<Person>
 
-    @POST("persons/{id}/phones")
+    @POST("/api/v1/persons/{id}/phones")
     suspend fun addPhone(@Path("id") personId: Int, @Body phonePerson: PhonePerson)
 
-    @POST("persons/{id}/emails")
+    @POST("/api/v1/persons/{id}/emails")
     suspend fun addEmail(@Path("id") personId: Int, @Body emailPerson: EmailPerson)
 
     @GET("/api/v1/persons/{id}")
-    suspend fun getPersonById(@Path("id") id: Int): Person
+    suspend fun getPersonById(@Path("id") id: Int): Response<Person>
 
     @POST("/api/v1/persons")
     suspend fun addPerson(@Body person: Person): Person
 
     @PUT("/api/v1/persons/{id}")
-    suspend fun updatePerson(@Path("id") id: Int, @Body person: Person): Person
+    suspend fun updatePerson(@Path("id") id: Int, @Body person: Person): Response<Person>
 
     @DELETE("/api/v1/persons/{id}")
     suspend fun deletePerson(@Path("id") id: Int)

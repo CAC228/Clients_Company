@@ -1,22 +1,26 @@
-package com.example.apiClient.ui
+package com.example.apiClient.adapters
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.apiClient.models.PhonePerson
 
-class PhoneAdapter(private var phones: MutableList<PhonePerson>) : RecyclerView.Adapter<PhoneAdapter.PhoneViewHolder>() {
+import android.view.LayoutInflater
+import android.view.View
 
-    inner class PhoneViewHolder(private val binding: ItemPhoneBinding) : RecyclerView.ViewHolder(binding.root) {
+class PhoneAdapter(private val phones: MutableList<PhonePerson>) : RecyclerView.Adapter<PhoneAdapter.PhoneViewHolder>() {
+
+    inner class PhoneViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val phoneTextView: TextView = itemView.findViewById(android.R.id.text1)
+
         fun bind(phone: PhonePerson) {
-            binding.phone = phone
+            phoneTextView.text = phone.phone
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhoneViewHolder {
-        val binding = ItemPhoneBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return PhoneViewHolder(binding)
+        val textView = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false)
+        return PhoneViewHolder(textView)
     }
 
     override fun onBindViewHolder(holder: PhoneViewHolder, position: Int) {
@@ -25,9 +29,14 @@ class PhoneAdapter(private var phones: MutableList<PhonePerson>) : RecyclerView.
 
     override fun getItemCount() = phones.size
 
-    fun setPhones(newPhones: List<PhonePerson>) {
+    fun updatePhones(newPhones: List<PhonePerson>) {
         phones.clear()
         phones.addAll(newPhones)
         notifyDataSetChanged()
+    }
+
+    fun addPhone(newPhone: PhonePerson) {
+        phones.add(newPhone)
+        notifyItemInserted(phones.size - 1)
     }
 }

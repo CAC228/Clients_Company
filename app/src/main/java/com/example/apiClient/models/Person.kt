@@ -1,5 +1,9 @@
 package com.example.apiClient.models
 
+import android.os.Parcelable
+import java.io.Serializable
+
+
 data class Person(
     val id: Int,
     var verietyID: Int,
@@ -10,4 +14,4 @@ data class Person(
     var data: String,
     val phones: List<PhonePerson> = emptyList(),
     val emails: List<EmailPerson> = emptyList()
-)
+): Serializable

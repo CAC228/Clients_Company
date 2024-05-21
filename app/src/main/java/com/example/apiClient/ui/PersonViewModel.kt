@@ -26,7 +26,7 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
     val verietyPersons: LiveData<List<VerietyPerson>> get() = _verietyPersons
 
     private val _personWithContacts = MutableLiveData<List<Person>>()
-    val personWithContacts: LiveData<List<Person>> get() = _personWithContacts
+    val personWithContacts = MutableLiveData<Person>()
 
     private val _currentPerson = MutableLiveData<Person?>()
     val currentPerson: LiveData<Person?> get() = _currentPerson
@@ -36,6 +36,12 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
 
     private val _isFiltering = MutableLiveData<Boolean>(false)
     val isFiltering: LiveData<Boolean> get() = _isFiltering
+
+    private val _updateResult = MutableLiveData<Boolean>()
+    val updateResult: LiveData<Boolean> get() = _updateResult
+
+    private val _updatedPerson = MutableLiveData<Person>()
+    val updatedPerson: LiveData<Person> get() = _updatedPerson
 
     fun setCurrentPerson(person: Person?) {
         _currentPerson.value = person
@@ -77,16 +83,24 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
         fetchAllPersons()
     }
 
-    // Fetch person by ID
-    fun fetchPersonById(id: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+    fun getPersonById(id: Int) {
+        viewModelScope.launch {
+            val person = repository.getPersonById(id)
+            _updatedPerson.postValue(person)
+        }
+    }
+
+    fun fetchPersonById(id: Int): LiveData<Person?> {
+        val personData = MutableLiveData<Person?>()
+        viewModelScope.launch {
             try {
                 val person = repository.getPersonById(id)
-                // Handle the fetched person
+                personData.postValue(person)
             } catch (e: Exception) {
-                // handle error
+                personData.postValue(null)
             }
         }
+        return personData
     }
 
     // Add new person
@@ -105,16 +119,11 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
         }
     }
 
-    // Update existing person
-    fun updatePerson(id: Int, person: Person) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val updatedPerson = repository.updatePerson(id, person)
-                fetchAllPersons()
-                // Handle the updated person
-            } catch (e: Exception) {
-                // handle error
-            }
+    // Функция для обновления данных пользователя
+    fun updatePerson(person: Person) {
+        viewModelScope.launch {
+            val result = repository.updatePerson(person)
+            _updateResult.postValue(result)
         }
     }
 
@@ -270,31 +279,38 @@ class PersonViewModel(private val repository: PersonRepository) : ViewModel() {
     }
 
     // Fetch contacts of a specific person by ID
-    fun fetchPersonContacts(id: Int) {
+    fun fetchPersonContacts(personId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val person = repository.getPersonContacts(id)
-                withContext(Dispatchers.Main) {
-                    _personDetails.value = person
-                }
+                val personDetails = repository.getPersonContacts(personId)
+                personWithContacts.postValue(personDetails)
             } catch (e: Exception) {
-                Log.e("PersonViewModel", "Error fetching person contacts", e)
+                // Handle error
             }
         }
     }
 
-    // Handler for saving person
-    fun onSaveClicked(person: Person) {
+    fun addPhone(phonePerson: PhonePerson) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (person.id == 0) {
-                    addPerson(person)
-                } else {
-                    updatePerson(person.id, person)
-                }
+                repository.addPhone(phonePerson)
+                fetchPersonContacts(phonePerson.personID)
             } catch (e: Exception) {
-                // handle error
+                // Handle error
             }
         }
     }
+
+    fun addEmail(emailPerson: EmailPerson) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.addEmail(emailPerson)
+                fetchPersonContacts(emailPerson.personID)
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }
+
+
 }

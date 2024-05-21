@@ -12,15 +12,39 @@ class PersonRepository(private val apiService: ApiServiceInterface) {
     }
 
 
-    suspend fun getPersonById(id: Int): Person = apiService.getPersonById(id)
+    suspend fun getPersonById(id: Int): Person {
+        val response = apiService.getPersonById(id)
+        if (response.isSuccessful) {
+            return response.body() ?: throw Exception("Person not found")
+        } else {
+            throw Exception("Error fetching person")
+        }
+    }
 
     suspend fun addPerson(person: Person): Person = apiService.addPerson(person)
 
-    suspend fun updatePerson(id: Int, person: Person): Person = apiService.updatePerson(id, person)
+    suspend fun updatePerson(person: Person): Boolean {
+        val response = apiService.updatePerson(person.id, person)
+        return response.isSuccessful
+    }
+
+
 
     suspend fun deletePerson(id: Int) = apiService.deletePerson(id)
 
+    suspend fun getPersonWithContacts(personId: Int): Person {
+        return apiService.getPersonContacts(personId)
+    }
     suspend fun getPersonContacts(id: Int): Person = apiService.getPersonContacts(id)
+
+
+    suspend fun addPhone(phonePerson: PhonePerson) {
+        apiService.addPhone(phonePerson.personID, phonePerson)
+    }
+
+    suspend fun addEmail(emailPerson: EmailPerson) {
+        apiService.addEmail(emailPerson.personID, emailPerson)
+    }
 
     suspend fun getAllStatusPersons(): List<StatusPerson> = apiService.getAllStatusPersons()
 

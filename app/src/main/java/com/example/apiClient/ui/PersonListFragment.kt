@@ -145,9 +145,19 @@ class PersonListFragment : Fragment() {
             .show()
     }
 
+    private fun fetchPersonDetails(personId: Int) {
+        viewModel.fetchPersonById(personId).observe(viewLifecycleOwner) { person ->
+            person?.let {
+                (activity as MainActivity).showPersonDetailsFragment(it)
+            } ?: run {
+                Toast.makeText(requireContext(), "Ошибка загрузки данных пользователя", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private fun setupRecyclerView() {
         adapter = PersonAdapter(
-            onEditClick = { person -> (activity as MainActivity).showPersonDetailsFragment(person) },
+            onEditClick = { person -> fetchPersonDetails(person.id) },
             onLongClick = { person -> showContextMenu(person) }
         )
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
